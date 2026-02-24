@@ -38,9 +38,13 @@ if uploaded_file:
         st.write(f"File Size: {uploaded_file.size / 1024:.2f} KB")
 
     # Convert to base64
-    buffered = io.BytesIO()
-    image.save(buffered, format="JPEG")
-    img_base64 = base64.b64encode(buffered.getvalue()).decode()
+# Ensure image is in RGB mode (fixes PNG/transparent issues)
+if image.mode != "RGB":
+    image = image.convert("RGB")
+
+buffered = io.BytesIO()
+image.save(buffered, format="JPEG")
+img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
     st.subheader("🤖 AI Analysis")
 
