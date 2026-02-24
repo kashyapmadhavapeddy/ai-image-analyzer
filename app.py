@@ -8,12 +8,46 @@ from datetime import datetime
 # -------------------------
 # PAGE CONFIG
 # -------------------------
-st.set_page_config(page_title="AI Image Analyzer", layout="wide")
-st.title("🖼️ AI Image Analyzer with History & Download")
-st.write("Upload multiple images. Scroll down to see previous analyses and download reports.")
+st.set_page_config(page_title="AI Image Analyzer", page_icon="🖼️", layout="centered")
 
 # -------------------------
-# SESSION STATE INIT
+# CUSTOM CSS
+# -------------------------
+st.markdown("""
+    <style>
+        .main-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .sub-title {
+            text-align: center;
+            color: #A0A0A0;
+            margin-bottom: 30px;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #111827;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .timestamp {
+            font-size: 13px;
+            color: #9CA3AF;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# -------------------------
+# HEADER
+# -------------------------
+st.markdown("<div class='main-title'>🖼️ AI Image Analyzer</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-title'>Upload images • Get AI insights • Download reports</div>", unsafe_allow_html=True)
+
+# -------------------------
+# SESSION STATE
 # -------------------------
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -24,15 +58,21 @@ if "history" not in st.session_state:
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # -------------------------
-# FILE UPLOADER
+# UPLOAD SECTION
 # -------------------------
+st.markdown("<div class='card'>", unsafe_allow_html=True)
+
 uploaded_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
 
+st.markdown("</div>", unsafe_allow_html=True)
+
+# -------------------------
+# IMAGE PROCESSING
+# -------------------------
 if uploaded_file is not None:
 
     image = Image.open(uploaded_file)
 
-    # Convert to RGB safely
     if image.mode != "RGB":
         image = image.convert("RGB")
 
@@ -71,7 +111,6 @@ if uploaded_file is not None:
 
         result = response.choices[0].message.content
 
-        # Save to history
         st.session_state.history.append({
             "image": image,
             "filename": uploaded_file.name,
@@ -83,15 +122,15 @@ if uploaded_file is not None:
 # DISPLAY HISTORY
 # -------------------------
 for idx, item in enumerate(st.session_state.history):
-    st.divider()
-    st.subheader(f"📁 Image {idx + 1}: {item['filename']}")
-    st.write(f"🕒 Analyzed at: {item['timestamp']}")
-    st.image(item["image"], use_container_width=True)
-    st.write(item["analysis"])
 
-    # -------------------------
-    # CREATE DOWNLOAD REPORT
-    # -------------------------
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+
+    st.markdown(f"### 📁 {item['filename']}")
+    st.markdown(f"<div class='timestamp'>Analyzed at: {item['timestamp']}</div>", unsafe_allow_html=True)
+
+    st.image(item["image"], use_container_width=True)
+    st.markdown(item["analysis"])
+
     report_text = f"""
 AI IMAGE ANALYSIS REPORT
 ----------------------------
@@ -113,11 +152,12 @@ ANALYSIS RESULT:
         key=f"download_{idx}"
     )
 
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # -------------------------
-# CLEAR HISTORY BUTTON
+# CLEAR HISTORY
 # -------------------------
 if st.session_state.history:
-    st.divider()
     if st.button("🗑 Clear History"):
         st.session_state.history = []
         st.rerun()
