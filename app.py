@@ -15,12 +15,13 @@ st.write("Upload an image and get complete AI-powered analysis.")
 # OPENAI CLIENT (Secure)
 # -------------------------
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
 # -------------------------
 # FILE UPLOAD
 # -------------------------
 uploaded_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
 
-if uploaded_file:
+if uploaded_file is not None:
 
     image = Image.open(uploaded_file)
 
@@ -37,15 +38,19 @@ if uploaded_file:
         st.write(f"Size: {image.size}")
         st.write(f"File Size: {uploaded_file.size / 1024:.2f} KB")
 
-    # Convert to base64
-# Ensure image is in RGB mode (fixes PNG/transparent issues)
-if image.mode != "RGB":
-    image = image.convert("RGB")
+    # -------------------------
+    # Convert to RGB safely
+    # -------------------------
+    if image.mode != "RGB":
+        image = image.convert("RGB")
 
-buffered = io.BytesIO()
-image.save(buffered, format="JPEG")
-img_base64 = base64.b64encode(buffered.getvalue()).decode()
+    buffered = io.BytesIO()
+    image.save(buffered, format="JPEG")
+    img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
+    # -------------------------
+    # AI Analysis
+    # -------------------------
     st.subheader("🤖 AI Analysis")
 
     with st.spinner("Analyzing image..."):
